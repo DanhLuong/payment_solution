@@ -3,8 +3,8 @@ package org.example.domain.bill;
 import org.example.domain.common.DefaultLongIDEntityDAO;
 
 import java.math.BigDecimal;
-import java.sql.Array;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DefaultBillEntityDAOImpl extends DefaultLongIDEntityDAO<BillEntity> implements BillDAO {
     @Override
@@ -42,7 +42,7 @@ public class DefaultBillEntityDAOImpl extends DefaultLongIDEntityDAO<BillEntity>
                 result.add(bill);
             }
         }
-        result.sort(new DueDateDescComparator());
+        result.sort(new DueDateDescBillComparator());
         return result;
     }
 
@@ -54,7 +54,23 @@ public class DefaultBillEntityDAOImpl extends DefaultLongIDEntityDAO<BillEntity>
                 result.add(bill);
             }
         }
-        result.sort(new DueDateDescComparator());
+        result.sort(new DueDateDescBillComparator());
         return result;
+    }
+
+    @Override
+    public List<BillEntity> findByClientIdSortByDueDateDesc(long clientId, boolean isPaid) {
+        return findByClientIdSortByDueDateDesc(clientId)
+                .stream()
+                .filter(bill -> bill.isPaid() == isPaid)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BillEntity> findByClientIdAndProviderSortByDueDateDesc(long clientId, String provider, boolean isPaid) {
+        return findByClientIdAndProviderSortByDueDateDesc(clientId, provider)
+                .stream()
+                .filter(bill -> bill.isPaid() == isPaid)
+                .collect(Collectors.toList());
     }
 }

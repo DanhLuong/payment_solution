@@ -4,7 +4,7 @@ import org.example.domain.common.BaseEntity;
 
 import java.math.BigDecimal;
 
-public class ClientEntity extends BaseEntity {
+public class ClientEntity extends BaseEntity<Long> {
     private String name;
     private String email;
     private String password;

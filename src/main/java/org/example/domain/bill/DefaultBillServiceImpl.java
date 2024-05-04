@@ -1,12 +1,13 @@
 package org.example.domain.bill;
 
 import java.util.List;
-
+//All method is in transaction in case real DB (wrap by a transactional proxy)
 public class DefaultBillServiceImpl implements BillService{
     private final BillDAO billDAO;
     public DefaultBillServiceImpl(BillDAO billDAO) {
         this.billDAO = billDAO;
     }
+
     @Override
     public void addBill(BillEntity bill) {
         billDAO.create(bill);

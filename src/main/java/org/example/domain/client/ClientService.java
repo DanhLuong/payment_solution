@@ -6,4 +6,5 @@ public interface ClientService {
     void addFund(Long clientID, BigDecimal amount);
     BigDecimal showFund(Long clientID);
     boolean checkEnoughFund(Long clientID, BigDecimal payment);
+    boolean authenticate(Long id, String password);
 }

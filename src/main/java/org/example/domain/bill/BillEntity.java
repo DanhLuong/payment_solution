@@ -5,7 +5,7 @@ import org.example.domain.common.BaseEntity;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class BillEntity extends BaseEntity {
+public class BillEntity extends BaseEntity<Long> {
     private long clientId;
     private String provider;
     private BigDecimal amount;

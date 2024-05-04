@@ -3,10 +3,13 @@ package org.example.domain.common;
 import java.sql.Date;
 import java.time.ZonedDateTime;
 
-public abstract class BaseEntity implements SoftDeletable{
+public abstract class BaseEntity<ID> implements SoftDeletable{
+    protected ID id;
     protected ZonedDateTime createdAt;
     protected ZonedDateTime modifiedAt;
     private boolean deleted = false;
+    public ID getId(){return this.id;}
+    protected void setId(ID id){this.id = id;}
     @Override
     public boolean isDeleted() {
         return deleted;

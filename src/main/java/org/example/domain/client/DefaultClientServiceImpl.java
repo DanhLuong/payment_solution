@@ -27,4 +27,13 @@ public class DefaultClientServiceImpl implements ClientService{
         ClientEntity client = clientDAO.findByID(clientID);
         return payment.compareTo(client.getFund()) < 0;
     }
+
+    @Override
+    public boolean authenticate(Long id, String password) {
+        ClientEntity client = clientDAO.findByID(id);
+        if(client == null) {
+            return false;
+        }
+        return client.getPassword().equals(password.trim());
+    }
 }
