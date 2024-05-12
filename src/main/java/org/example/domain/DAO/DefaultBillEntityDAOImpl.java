@@ -36,6 +36,51 @@ public class DefaultBillEntityDAOImpl extends DefaultLongIDEntityDAO<BillEntity>
                 .dueDate(new Date(2024, Calendar.MAY,1,0,0))
                 .build()
         );
+        create(new BillBuilder()
+                .forClientId(1L)
+                .provider("SHOPPE")
+                .serviceType("Food")
+                .amount(new BigDecimal("25000"))
+                .dueDate(new Date(2024, Calendar.JUNE,25,0,0))
+                .build()
+        );
+
+        create(new BillBuilder()
+                .forClientId(1L)
+                .provider("FPT")
+                .serviceType("INTERNET")
+                .amount(new BigDecimal("265000"))
+                .dueDate(new Date(2024, Calendar.MAY,30,0,0))
+                .build()
+        );
+
+        create(new BillBuilder()
+                .forClientId(1L)
+                .provider("VIETTEL")
+                .serviceType("MOBILE")
+                .amount(new BigDecimal("100000"))
+                .dueDate(new Date(2024, Calendar.JULY,30,0,0))
+                .build()
+        );
+
+        create(new BillBuilder()
+                .forClientId(1L)
+                .provider("VIETNAM_AIRLINES")
+                .serviceType("FLIGHT")
+                .amount(new BigDecimal("5391000"))
+                .dueDate(new Date(2024, Calendar.JUNE,15,0,0))
+                .build()
+        );
+
+        create(new BillBuilder()
+                .forClientId(1L)
+                .provider("NEW_WORLD")
+                .serviceType("preservation")
+                .amount(new BigDecimal("1487000"))
+                .dueDate(new Date(2024, Calendar.DECEMBER,1,0,0))
+                .build()
+        );
+
     }
 
     @Override

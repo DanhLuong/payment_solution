@@ -1,17 +1,21 @@
 package org.example;
 
 import org.example.batch.JobManager;
+import org.example.batch.SchedulePaymentJob;
 import org.example.domain.DAO.*;
 import org.example.domain.entity.TransactionJoinBillTemplate;
 import org.example.domain.service.*;
 import org.example.domain.entity.BillEntity;
 import org.example.domain.exception.BusinessException;
+import org.example.utils.common.Utils;
 import org.example.utils.printer.DefaultEntityPrinterImpl;
 import org.example.utils.printer.EntityPrinter;
 import org.example.utils.printer.EntityPrinterManager;
 import org.example.utils.printer.PrinterManager;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -22,6 +26,7 @@ public class Main {
     private static final String LIST_BILL_PRINTER = "printer$1";
     private static final String LIST_PAYMENT_PRINTER = "printer$2";
     private static final String SCHEDULE_PAYMENT_JOB = "job$1";
+    private static final String INIT_JOB = "job$2";
     public static void main(String[] args) {
         //<<<<<<<<<<<<<<<<<<--config object to use-->>>>>>>>>>>>>>>>>>>>>>>
         //create object and make Dependency Injection manually here
@@ -31,6 +36,8 @@ public class Main {
         BillService billService = new DefaultBillServiceImpl(billDAO);
         TransactionDAO transactionDAO = new DefaultTransactionEntityDAOImpl();
         TransactionService transactionService = new DefaultTransactionServiceImpl(clientDAO, billDAO, transactionDAO);
+        ScheduleTransactionDAO scheduleTransactionDAO = new DefaultScheduleTransactionDAOImpl();
+        ScheduleTransactionService scheduleTransactionService = new DefaultScheduleTranServiceImpl(transactionService, scheduleTransactionDAO);
         Scanner sc = new Scanner(System.in);
         //config printers
         EntityPrinter<BillEntity> list_bill_printer = new DefaultEntityPrinterImpl<>(BillEntity.class);
@@ -38,7 +45,7 @@ public class Main {
         list_bill_printer.registerColumn("TYPE", "serviceType");
         list_bill_printer.registerColumn("AMOUNT", "amount");
         list_bill_printer.registerColumn("DUE_DATE", "dueDate");
-        list_bill_printer.registerColumn("PROVIDER", "provider");
+        list_bill_printer.registerColumn("PROVIDER", "provider", 20);
         list_bill_printer.registerColumn("IS_PAID", "isPaid");
         list_bill_printer.doneConfig();
         EntityPrinter<TransactionJoinBillTemplate> list_payment_printer = new DefaultEntityPrinterImpl<>(TransactionJoinBillTemplate.class);
@@ -57,12 +64,12 @@ public class Main {
         printerManager.doneConfig();
         //config and run all job available
         ScheduledExecutorService job1ExeService = new ScheduledThreadPoolExecutor(1);
-        //SchedulePaymentJob job1 = new SchedulePaymentJob(job1ExeService, 1, );
+        SchedulePaymentJob job1 = new SchedulePaymentJob(job1ExeService, 13, 26, scheduleTransactionService);
         JobManager jobManager = new JobManager();
-        //jobManager.addJob(SCHEDULE_PAYMENT_JOB, job1);
-        jobManager.addJob("abc", ()->{
-            System.out.println("abc run");
+        jobManager.addJob("INIT_JOB", ()->{
+            System.out.println("start the program!");
         });
+        jobManager.addJob(SCHEDULE_PAYMENT_JOB, job1);
         jobManager.doneConfig();
         jobManager.startAllJobs();
         //<<<<<<<<<<<<<<<<<<--config object to use-->>>>>>>>>>>>>>>>>>>>>>>
@@ -77,7 +84,7 @@ public class Main {
                 case "1" -> {
                     System.out.print("ID: ");
                     String IDString = sc.nextLine();
-                    Long id = 0L;
+                    long id = 0L;
                     try {
                         id = Long.parseLong(IDString);
                     } catch (NumberFormatException e) {
@@ -95,7 +102,8 @@ public class Main {
                                 printerManager,
                                 clientService,
                                 billService,
-                                transactionService);
+                                transactionService,
+                                scheduleTransactionService);
                     } else {
                         System.out.println("Incorrect ID or password!");
                     }
@@ -117,7 +125,8 @@ public class Main {
                               PrinterManager printerManager,
                               ClientService clientService,
                               BillService billService,
-                              TransactionService transactionService) {
+                              TransactionService transactionService,
+                              ScheduleTransactionService scheduleTransactionService) {
         System.out.format("Start new session << %s >>===============================================================\n", session);
         final String COMMANDS = "Command format:\n" +
                 "1. CASH_IN {amount}                         => add money to current fund\n" +
@@ -161,23 +170,23 @@ public class Main {
                         System.out.println("Wrong command format: this command has no argument");
                     }  else {
                         List<BillEntity> bills = billService.findBillByClientIdSortDueDateDesc(clientId);
-                        printerManager.getPrinter(LIST_BILL_PRINTER).print(System.out, bills);
+                        String printResult = printerManager.getPrinter(LIST_BILL_PRINTER).getPrintResult(bills);
+                        System.out.println(printResult);
                     }
                 }
                 case "PAY" -> {
                     if(commandArg.isEmpty()) {
                         System.out.println("Wrong command format: this command has at least 1 argument");
                     } else {
-                        List<Long> billIds = new ArrayList<>();
-                        try {
-                            for(String str : commandArg) {
-                                billIds.add(Long.parseLong(str));
+                        for(String str : commandArg) {
+                            try {
+                                long billId = Long.parseLong(str);
+                                transactionService.payBillWithBillId(clientId, billId);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Wrong command format: Bill Id must be number");
+                            } catch (BusinessException e) {
+                                System.out.println(e.getMessage());
                             }
-                            transactionService.payBillWithBillIds(clientId, billIds);
-                        } catch (NumberFormatException e) {
-                            System.out.println("Wrong command format: Bill Id must be number");
-                        } catch (BusinessException e) {
-                            System.out.println(e.getMessage());
                         }
                     }
                 }
@@ -186,19 +195,34 @@ public class Main {
                         System.out.println("Wrong command format: this command has no argument");
                     }  else {
                         List<BillEntity> bills = billService.findByClientIdSortByDueDateDesc(clientId, false);
-                        printerManager.getPrinter(LIST_BILL_PRINTER).print(System.out, bills);
+                        String printResult = printerManager.getPrinter(LIST_BILL_PRINTER).getPrintResult(bills);
+                        System.out.println(printResult);
                     }
                 }
                 case "SCHEDULE" -> {
-                    System.out.println("SCHEDULE");
-
+                    if (commandArg.size() != 2) {
+                        System.out.println("Wrong command format: this command has 2 arguments");
+                    } else {
+                        try {
+                            Long billID = Long.parseLong(commandArg.get(0));
+                            ZonedDateTime date = Utils.convertZonedDateTimeFromString(commandArg.get(1), "dd/MM/yyyy");
+                            scheduleTransactionService.registerSchedule(clientId, billID, date);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Wrong command format: Bill Id must be number");
+                        } catch (DateTimeParseException e) {
+                            System.out.println("Wrong command format: Date is not match format dd/MM/yyyy");
+                        } catch (Exception e) {
+                            System.out.println("Some error happen. please contact for support");
+                        }
+                    }
                 }
                 case "LIST_PAYMENT" -> {
                     if(!commandArg.isEmpty()) {
                         System.out.println("Wrong command format: this command has no argument");
                     }  else {
                         List<TransactionJoinBillTemplate> templates = transactionService.findTranByClientIdSortByPayDateDesc(clientId);
-                        printerManager.getPrinter(LIST_PAYMENT_PRINTER).print(System.out, templates);
+                        String printResult = printerManager.getPrinter(LIST_PAYMENT_PRINTER).getPrintResult(templates);
+                        System.out.println(printResult);
                     }
                 }
                 case "SEARCH_BILL_BY_PROVIDER" -> {
@@ -206,13 +230,14 @@ public class Main {
                         System.out.println("Wrong command format: this command have 1 argument only!");
                     }  else {
                         List<BillEntity> bills = billService.findByClientIdAndProviderSortByDueDateDesc(clientId, commandArg.get(0), false);
-                        printerManager.getPrinter(LIST_BILL_PRINTER).print(System.out, bills);
+                        String printResult = printerManager.getPrinter(LIST_BILL_PRINTER).getPrintResult(bills);
+                        System.out.println(printResult);
                     }
                 }
                 case "EXIT" -> {}
                 default -> System.out.println("Wrong command format. Please try again");
             }
-        } while(!"EXIT".equals(command.trim()));
+        } while(!"EXIT".equalsIgnoreCase(command.trim()));
         System.out.format("End session       << %s >>===============================================================\n", session);
     };
 }

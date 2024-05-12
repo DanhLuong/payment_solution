@@ -30,7 +30,7 @@ public class DefaultTransactionServiceImpl implements TransactionService{
         }
         ClientEntity client = clientDAO.findByID(clientId);
         if(client.getFund().compareTo(bill.getAmount()) < 0) {
-            throw new BusinessException("Current fund is not enough for payment. Please add more fund");
+            throw new BusinessException("Payment operation cancel for bill ID no " + billId + " . Current fund is not enough for payment. Please add more fund");
         }
         client.setFund(client.getFund().subtract(bill.getAmount()));
         clientDAO.update(clientId, client);

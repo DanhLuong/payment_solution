@@ -24,8 +24,8 @@ public class Utils {
         return method;
     }
 
-    public static ZonedDateTime convertZonedDateTimeFromString(String date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public static ZonedDateTime convertZonedDateTimeFromString(String date, String format) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         LocalDate inputDate = LocalDate.parse(date, formatter);
         return inputDate.atStartOfDay(ZoneId.systemDefault());
     }

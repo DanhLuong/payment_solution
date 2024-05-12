@@ -25,11 +25,13 @@ public class DefaultEntityPrinterImpl<T> implements EntityPrinter<T> {
         public String colHeader;
         public Method colGetDataMethod;
         public String format;
+        public int width;
         //rawFormat follow https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html remove the [width] part
-        public ColumnConfig(String colHeader, Method colGetDataMethod, String format) {
+        public ColumnConfig(String colHeader, Method colGetDataMethod, int width,  String format) {
             this.colHeader = colHeader;
             this.colGetDataMethod = colGetDataMethod;
             this.format = format;
+            this.width = width;
         }
     }
 
@@ -38,12 +40,12 @@ public class DefaultEntityPrinterImpl<T> implements EntityPrinter<T> {
         this.tableConfig = new ArrayList<>();
     }
     @Override
-    public void registerColumn(String headerName, String fieldName, String format) {
+    public void registerColumn(String headerName, String fieldName, Integer width, String format) {
         if (blocked) {
             return;
         }
         Method getDataMethod = Utils.getMethodFromFieldName(fieldName, clazz);
-        ColumnConfig colConfig = new ColumnConfig(headerName, getDataMethod, format);
+        ColumnConfig colConfig = new ColumnConfig(headerName, getDataMethod, width, format);
         tableConfig.add(colConfig);
     }
 
@@ -62,7 +64,7 @@ public class DefaultEntityPrinterImpl<T> implements EntityPrinter<T> {
         } else {
             format += DEFAULT_STRING_FORMAT;
         }
-        registerColumn(headerName, fieldName, format);
+        registerColumn(headerName, fieldName, width, format);
     }
 
     @Override
@@ -71,10 +73,10 @@ public class DefaultEntityPrinterImpl<T> implements EntityPrinter<T> {
     }
 
     @Override
-    public void print(PrintStream ps, List<T> entities) {
+    public String getPrintResult(List<T> entities) {
         StringBuilder sb = new StringBuilder();
         for(ColumnConfig col : tableConfig) {
-            sb.append(String.format("%-15s",col.colHeader));
+            sb.append(String.format("%-" + col.width + "s", col.colHeader));
         }
         sb.append("\n");
         for(T entity : entities) {
@@ -91,8 +93,9 @@ public class DefaultEntityPrinterImpl<T> implements EntityPrinter<T> {
             }
             sb.append("\n");
         }
-        ps.println(sb);
+        return sb.toString();
     }
+
     public void doneConfig() {
         this.blocked = true;
     }

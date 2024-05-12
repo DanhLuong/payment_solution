@@ -11,7 +11,8 @@ public class BillEntity extends BaseEntity<Long> {
     private boolean isPaid;
     private Date dueDate;
 
-    public BillEntity(long clientId, String provider, BigDecimal amount, String serviceType, boolean isPaid, Date dueDate) {
+    public BillEntity(long id, long clientId, String provider, BigDecimal amount, String serviceType, boolean isPaid, Date dueDate) {
+        this.id = id;
         this.clientId = clientId;
         this.provider = provider;
         this.amount = amount;

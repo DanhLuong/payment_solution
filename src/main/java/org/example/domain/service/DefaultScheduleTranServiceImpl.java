@@ -17,12 +17,22 @@ public class DefaultScheduleTranServiceImpl implements ScheduleTransactionServic
     }
     //Transactional nested
     @Override
-    public void processScheduleTransactionAtDate(ZonedDateTime date) throws BusinessException{
+    public void processScheduleTransactionAtDate(ZonedDateTime date) {
         List<ScheduleTransactionEntity> scheduleTrans =  scheduleTransactionDAO.findBillIdFromScheduleTranByDateNotDone(date);
         for(ScheduleTransactionEntity scheduleTran : scheduleTrans) {
-            transactionService.payBillWithBillId(scheduleTran.getClientID(), scheduleTran.getBillID());
-            scheduleTran.setDone(true);
-            scheduleTransactionDAO.update(scheduleTran.getId(), scheduleTran);
+            try {
+                transactionService.payBillWithBillId(scheduleTran.getClientID(), scheduleTran.getBillID());
+                scheduleTran.setDone(true);
+                scheduleTransactionDAO.update(scheduleTran.getId(), scheduleTran);
+            } catch(BusinessException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
+    //Transactional
+    @Override
+    public void registerSchedule(Long clientID, Long billID, ZonedDateTime date) {
+        scheduleTransactionDAO.create(new ScheduleTransactionEntity(clientID, billID, date));
+    }
+
 }

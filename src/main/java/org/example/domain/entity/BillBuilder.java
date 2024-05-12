@@ -4,7 +4,7 @@ package org.example.domain.entity;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class BillBuilder {
+public class BillBuilder extends IdEntityBuilder<Long> {
     private long clientId;
     private String provider="_";
     private BigDecimal amount=BigDecimal.ZERO;
@@ -13,6 +13,11 @@ public class BillBuilder {
     private Date dueDate = null;
 
     public BillBuilder() {
+    }
+
+    public BillBuilder withId(long id) {
+        this.id= id;
+        return this;
     }
 
     public BillBuilder forClientId(long clientId) {
@@ -50,7 +55,7 @@ public class BillBuilder {
         if(this.dueDate == null) {
             throw new IllegalArgumentException("due date is mandatory for each bill");
         }
-        return new BillEntity(clientId, provider, amount, serviceType, isPaid, dueDate);
+        return new BillEntity(id, clientId, provider, amount, serviceType, isPaid, dueDate);
     }
 }
 

@@ -12,7 +12,7 @@ import java.util.List;
 public class DefaultScheduleTransactionDAOImpl extends DefaultLongIDEntityDAO<ScheduleTransactionEntity> implements ScheduleTransactionDAO{
     @Override
     protected void initSampleData() {
-        create(new ScheduleTransactionEntity(1L,3L, Utils.convertZonedDateTimeFromString("10/05/2024")));
+        create(new ScheduleTransactionEntity(1L,3L, Utils.convertZonedDateTimeFromString("10/05/2024", "dd/MM/yyyy")));
     }
 
     @Override
